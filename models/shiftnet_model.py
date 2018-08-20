@@ -144,9 +144,16 @@ class ShiftNetModel(BaseModel):
 
         self.set_latent_mask(self.mask_global, 3, self.opt.threshold)
 
-        self.input_A.narrow(1,0,1).masked_fill_(self.mask_global, 2*123.0/255.0 - 1.0)
-        self.input_A.narrow(1,1,1).masked_fill_(self.mask_global, 2*104.0/255.0 - 1.0)
-        self.input_A.narrow(1,2,1).masked_fill_(self.mask_global, 2*117.0/255.0 - 1.0)
+        # import pdb
+        # pdb.set_trace()
+        img_avg_r = 123.0
+        img_avg_g = 117.0 # original code swapped g and b
+        img_avg_b = 104.0
+
+
+        self.input_A.narrow(1,0,1).masked_fill_(self.mask_global, 2*img_avg_r/255.0 - 1.0)
+        self.input_A.narrow(1,1,1).masked_fill_(self.mask_global, 2*img_avg_g/255.0 - 1.0)
+        self.input_A.narrow(1,2,1).masked_fill_(self.mask_global, 2*img_avg_b/255.0 - 1.0)
 
     def preset_innerCos(self):
         self.ng_innerCos_list[0].set_target(Variable(self.Tensor(self.opt.batchSize, 256, 32, 32)))

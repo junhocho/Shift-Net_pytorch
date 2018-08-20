@@ -8,7 +8,7 @@ class BaseOptions():
         self.initialized = False
 
     def initialize(self, parser):
-        parser.add_argument('--dataroot', default='./datasets/Paris_StreetView_Dataset', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
+        parser.add_argument('--dataroot', default='/home/pil/data/ocr/svt1', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
         parser.add_argument('--batchSize', type=int, default=1, help='input batch size')
         parser.add_argument('--loadSize', type=int, default=350, help='scale images to this size')
         parser.add_argument('--fineSize', type=int, default=256, help='then crop to this size')
