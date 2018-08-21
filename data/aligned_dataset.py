@@ -33,7 +33,8 @@ class AlignedDataset(BaseDataset):
 
         # -------------------------------
         self.has_mask_GT = False
-        if 'total-text' in opt.name:
+        # if 'total-text' in opt.name:
+        if 'text' in opt.mask_type: # Incase train on SVT and test on TotalText mask
             self.has_mask_GT = True
             self.tottxt_image_path = 'Dataset/totaltext/Images'
             self.tottxt_char_mask_path = 'Groundtruth/Pixel/Character Level Mask/groundtruth_pixel'
@@ -80,6 +81,9 @@ class AlignedDataset(BaseDataset):
 
         # -----------tottxt ---------------
         if self.has_mask_GT:
+            if 'random' in self.opt.mask_type: # randomly shifted mask from original text place.
+                w_offset = random.randint(0, max(0, w - self.opt.fineSize - 1))
+                h_offset = random.randint(0, max(0, h - self.opt.fineSize - 1))
             A_char_mask = A_char_mask[:, h_offset:h_offset + self.opt.fineSize,
                    w_offset:w_offset + self.opt.fineSize]
             A_txt_bb_mask = A_txt_bb_mask[:, h_offset:h_offset + self.opt.fineSize,
@@ -92,10 +96,12 @@ class AlignedDataset(BaseDataset):
 
         # let B directly equals A
         B = A.clone()
-        return {'A': A, 'B': B,
-                'A_char_mask':A_char_mask,
-                'A_txt_bb_mask':A_txt_bb_mask,
+        out =  {'A': A, 'B': B,
                 'A_paths': A_path}
+        if self.has_mask_GT:
+            out['A_char_mask'] = A_char_mask
+            out['A_txt_bb_mask'] = A_txt_bb_mask
+        return out
 
     def __len__(self):
         return len(self.A_paths)

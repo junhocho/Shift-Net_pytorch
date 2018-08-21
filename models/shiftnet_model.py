@@ -36,11 +36,11 @@ class ShiftNetModel(BaseModel):
         self.mask_type = opt.mask_type
         self.gMask_opts = {}
         # NOTE by JH : 'text' then don't generate mask but use loaded mask.
-        self.fixed_mask = opt.fixed_mask if opt.mask_type == 'center' or opt.mask_type == 'text' else 0
+        self.fixed_mask = opt.fixed_mask if opt.mask_type == 'center' or 'text' in opt.mask_type else 0
         if opt.mask_type == 'center':
             assert opt.fixed_mask == 1, "Center mask must be fixed mask!"
 
-        if opt.mask_type == 'text':
+        if 'text' in opt.mask_type:
             assert opt.fixed_mask == 1, "Center mask must be fixed mask!"
 
         if self.mask_type == 'random':
@@ -139,10 +139,17 @@ class ShiftNetModel(BaseModel):
                 self.mask_global.zero_()
                 self.mask_global[:, :, int(self.opt.fineSize/4) + self.opt.overlap : int(self.opt.fineSize/2) + int(self.opt.fineSize/4) - self.opt.overlap,\
                                     int(self.opt.fineSize/4) + self.opt.overlap: int(self.opt.fineSize/2) + int(self.opt.fineSize/4) - self.opt.overlap] = 1
-            elif self.opt.mask_type == 'text':
+            elif 'text' in self.opt.mask_type:
                 input_A_char_mask = input['A_char_mask']
-                input_A_txt_bb_mask = input['A_txt_bb_mask'].type_as(self.mask_global)
-                self.mask_global = input_A_txt_bb_mask.type_as(self.mask_global)
+                input_A_txt_bb_mask = input['A_txt_bb_mask']
+                if 'char' in self.opt.mask_type:
+                    chosen_mask = input_A_char_mask
+                elif 'txt_bb' in self.opt.mask_type:
+                    chosen_mask = input_A_txt_bb_mask
+                else:
+                    raise ValueError('Unknown opt.mask_type')
+
+                self.mask_global = chosen_mask.type_as(self.mask_global)
                 # print(self.mask_global)
 
             elif self.opt.mask_type == 'random':
@@ -159,6 +166,8 @@ class ShiftNetModel(BaseModel):
         img_avg_g = 117.0 # original code swapped g and b
         img_avg_b = 104.0
 
+        # img_avg_b = 117.0 # original code swapped g and b
+        # img_avg_g = 104.0
 
         self.input_A.narrow(1,0,1).masked_fill_(self.mask_global, 2*img_avg_r/255.0 - 1.0)
         self.input_A.narrow(1,1,1).masked_fill_(self.mask_global, 2*img_avg_g/255.0 - 1.0)
