@@ -40,7 +40,7 @@ class BaseOptions():
         parser.add_argument('--no_flip', action='store_true', help='if specified, do not flip the images for data argumentation')
         parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]')
         # Shift feature relevant.
-        parser.add_argument('--mask_type', type=str, default='center', help='the type of mask you want to apply, \'center\' or \'random\'')
+        parser.add_argument('--mask_type', type=str, default='center', help='the type of mask you want to apply, [center|random|text')
         parser.add_argument('--fixed_mask', type=int, default=1, help='1 or 0, whether mask is fixed')
         parser.add_argument('--lambda_A', type=int, default=100, help='weight on L1 term in objective')
         parser.add_argument('--threshold', type=float, default=5/16.0, help='making binary mask')

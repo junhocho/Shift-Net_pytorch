@@ -35,8 +35,12 @@ class ShiftNetModel(BaseModel):
 
         self.mask_type = opt.mask_type
         self.gMask_opts = {}
-        self.fixed_mask = opt.fixed_mask if opt.mask_type == 'center' else 0
+        # NOTE by JH : 'text' then don't generate mask but use loaded mask.
+        self.fixed_mask = opt.fixed_mask if opt.mask_type == 'center' or opt.mask_type == 'text' else 0
         if opt.mask_type == 'center':
+            assert opt.fixed_mask == 1, "Center mask must be fixed mask!"
+
+        if opt.mask_type == 'text':
             assert opt.fixed_mask == 1, "Center mask must be fixed mask!"
 
         if self.mask_type == 'random':
@@ -135,6 +139,12 @@ class ShiftNetModel(BaseModel):
                 self.mask_global.zero_()
                 self.mask_global[:, :, int(self.opt.fineSize/4) + self.opt.overlap : int(self.opt.fineSize/2) + int(self.opt.fineSize/4) - self.opt.overlap,\
                                     int(self.opt.fineSize/4) + self.opt.overlap: int(self.opt.fineSize/2) + int(self.opt.fineSize/4) - self.opt.overlap] = 1
+            elif self.opt.mask_type == 'text':
+                input_A_char_mask = input['A_char_mask']
+                input_A_txt_bb_mask = input['A_txt_bb_mask'].type_as(self.mask_global)
+                self.mask_global = input_A_txt_bb_mask.type_as(self.mask_global)
+                # print(self.mask_global)
+
             elif self.opt.mask_type == 'random':
                 self.mask_global = util.create_gMask(self.gMask_opts).type_as(self.mask_global)
             else:
@@ -144,8 +154,7 @@ class ShiftNetModel(BaseModel):
 
         self.set_latent_mask(self.mask_global, 3, self.opt.threshold)
 
-        # import pdb
-        # pdb.set_trace()
+        # print(input_A.size())
         img_avg_r = 123.0
         img_avg_g = 117.0 # original code swapped g and b
         img_avg_b = 104.0
